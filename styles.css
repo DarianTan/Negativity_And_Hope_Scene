@@ -1,0 +1,56 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #000;
+}
+
+.overlay {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(82vw, 560px);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  z-index: 10;
+  text-align: center;
+  line-height: 1.35;
+  backdrop-filter: blur(6px);
+}
+
+.overlay h1 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.overlay p {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.92;
+}
+
+.hint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90vw, 520px);
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  text-align: center;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.hint.show {
+  opacity: 1;
+}

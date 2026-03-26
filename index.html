@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pandora's Box VR Scene</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="overlay">
+      <h1>Pandora's Box: What Escaped</h1>
+      <p>
+        Move through the space and approach the floating forms. When you enter the radius of a shape, it reacts and reveals what it represents. Some truths reveal more if you choose to stay with them.
+      </p>
+    </div>
+
+    <div id="hintBox" class="hint"></div>
+
+    <a-scene background="color: #050505" progress-manager>
+      <a-assets>
+        <audio
+          id="hum"
+          src="https://cdn.aframe.io/basic-guide/audio/backgroundnoise.wav"
+          preload="auto"
+        ></audio>
+        <img id="qr-code" src="images/frame.png" />
+      </a-assets>
+
+      <a-entity light="type: ambient; intensity: 0.3; color: #8a8a8a"></a-entity>
+      <a-entity light="type: point; intensity: 1.2; distance: 35; color: #ff4d4d" position="0 5 0"></a-entity>
+      <a-entity light="type: point; intensity: 0.6; distance: 20; color: #7c3aed" position="5 3 -4"></a-entity>
+      <a-entity light="type: point; intensity: 0.5; distance: 18; color: #d9f99d" position="-4 2 3"></a-entity>
+
+      <a-sky color="#080808"></a-sky>
+      <a-plane
+        position="0 0 0"
+        rotation="-90 0 0"
+        width="30"
+        height="30"
+        color="#0f0f10"
+        shadow="receive: true"
+      ></a-plane>
+
+      <a-entity id="portalWall" position="0 2 -8" visible="false">
+        <a-plane width="6" height="4" color="#111111" material="opacity: 0.92"></a-plane>
+        <a-entity
+          text="value: You have explored all that escaped.\nYou may proceed to the next phase.; align: center; color: #FFFFFF; width: 3.1; wrapCount: 20"
+          position="0 1.05 0.02"
+        ></a-entity>
+        <a-plane position="0 -0.15 0.02" width="1.7" height="1.7" color="#f5f5f5"></a-plane>
+        <a-image src="#qr-code" position="0 -0.15 0.03" width="1.42" height="1.42"></a-image>
+        <a-entity
+          text="value: Scan to enter the next scene.; align: center; color: #CFCFCF; width: 2.2; wrapCount: 16"
+          position="0 -1.35 0.02"
+        ></a-entity>
+      </a-entity>
+
+      <a-entity id="rig" position="0 1.6 5">
+        <a-entity
+          id="camera"
+          camera
+          look-controls
+          wasd-controls="acceleration: 28"
+          position="0 0 0"
+          proximity-manager
+        >
+          <a-entity
+            position="0 0 -1"
+            geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"
+            material="color: #ffffff; shader: flat; opacity: 0.9"
+          ></a-entity>
+          <a-entity
+            id="interactionText"
+            text="value: Enter a form's space to reveal what escaped.; align: center; color: #FFFFFF; width: 1.05; wrapCount: 14"
+            position="0 -0.26 -0.9"
+            visible="true"
+          ></a-entity>
+          <a-entity
+            id="completionText"
+            text="value: ; align: center; color: #D9F99D; width: 1.3; wrapCount: 18"
+            position="0 0.22 -1"
+            visible="false"
+          ></a-entity>
+        </a-entity>
+      </a-entity>
+
+      <a-entity sound="src: #hum; autoplay: true; loop: true; volume: 0.18"></a-entity>
+
+      <a-entity
+        class="clickable"
+        data-title="Fear"
+        data-line1="Fear keeps you alert, but it can trap you before danger even arrives."
+        data-line2="The more you feed it, the smaller the world becomes."
+        data-prompt="It circles you before you can name it. Stay with it?"
+        data-second="Fear does not always chase you. Sometimes it teaches you to cage yourself."
+        interactive-shape
+        position="-2.2 2 -1.5"
+        float-motion="speed: 0.75; range: 0.08"
+      >
+        <a-octahedron radius="0.55" color="#a10000" material="emissive: #520000; emissiveIntensity: 0.8; roughness: 0.3"></a-octahedron>
+      </a-entity>
+
+      <a-entity
+        class="clickable"
+        data-title="Jealousy"
+        data-line1="Jealousy distorts worth by making someone else's life feel like a judgment of your own."
+        data-line2="It grows quietly, then asks to be justified."
+        data-prompt="It shines because it wants comparison. Look closer?"
+        data-second="Jealousy survives by convincing you that longing and resentment are the same thing."
+        interactive-shape
+        position="2.5 1.7 -2.8"
+        float-motion="speed: 0.65; range: 0.09"
+      >
+        <a-tetrahedron radius="0.65" color="#d97706" material="emissive: #7c2d12; emissiveIntensity: 0.75"></a-tetrahedron>
+      </a-entity>
+
+      <a-entity
+        class="clickable"
+        data-title="Chaos"
+        data-line1="Chaos is not only destruction. It is confusion that makes meaning difficult to hold onto."
+        data-line2="It breaks patterns so that certainty feels impossible."
+        data-prompt="It never settles long enough to be understood. Follow it anyway?"
+        data-second="Chaos seduces through motion. You keep watching because you hope the pattern will finally make sense."
+        interactive-shape
+        position="0.8 2.8 1.8"
+        float-motion="speed: 0.8; range: 0.1"
+      >
+        <a-icosahedron radius="0.5" color="#6d28d9" material="emissive: #312e81; emissiveIntensity: 0.9"></a-icosahedron>
+      </a-entity>
+
+      <a-entity
+        class="clickable"
+        data-title="Disease"
+        data-line1="Disease represents fragility, the reminder that bodies can fail without warning."
+        data-line2="It spreads fear because it feels invisible until it is too late."
+        data-prompt="You cannot always see what harms you. Do you still want the truth?"
+        data-second="Its power comes from uncertainty. Not knowing becomes part of the suffering."
+        interactive-shape
+        position="-0.5 1.4 -4"
+        float-motion="speed: 0.55; range: 0.06"
+      >
+        <a-sphere radius="0.45" segments-width="10" segments-height="8" color="#2563eb" material="wireframe: true; emissive: #1e3a8a; emissiveIntensity: 0.85"></a-sphere>
+      </a-entity>
+
+      <a-entity
+        class="clickable"
+        data-title="Hope"
+        data-line1="Hope remains after the damage, not because it erases pain, but because it allows people to continue."
+        data-line2="It is quieter than the others, which is why it is easy to overlook."
+        data-prompt="It does not demand attention. It waits to be chosen. Stay with it?"
+        data-second="Hope is not loud reassurance. It is the decision to move, even while uncertainty remains."
+        interactive-shape="hope: true"
+        position="0 2.1 0.8"
+        float-motion="speed: 0.4; range: 0.05"
+      >
+        <a-dodecahedron radius="0.42" color="#d9f99d" material="emissive: #84cc16; emissiveIntensity: 1"></a-dodecahedron>
+      </a-entity>
+
+      <a-entity particle-field="count: 40"></a-entity>
+    </a-scene>
+
+    <script src="script.js"></script>
+  </body>
+</html>
