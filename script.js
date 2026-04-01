@@ -9,6 +9,138 @@ function showHint(text, duration = 2500) {
   }, duration);
 }
 
+const aspectDescription = document.getElementById('aspectDescription');
+
+function showAspectDescription(title, line1, line2) {
+  if (!aspectDescription) return;
+  aspectDescription.innerHTML = `<strong>${title}</strong><br>${line1}<br>${line2}`;
+  aspectDescription.classList.add('show');
+}
+
+function hideAspectDescription() {
+  if (!aspectDescription) return;
+  aspectDescription.classList.remove('show');
+  aspectDescription.textContent = '';
+}
+
+const mobileMoveState = {
+  forward: false,
+  backward: false,
+  left: false,
+  right: false
+};
+
+function isMobileLike() {
+  return window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+}
+
+let currentChoiceShape = null;
+
+window.addEventListener('keydown', (event) => {
+  if (!currentChoiceShape) return;
+
+  const comp = currentChoiceShape.components['interactive-shape'];
+  if (!comp) return;
+
+  if (event.key === '1') {
+    comp.chooseStay();
+  }
+
+  if (event.key === '2') {
+    comp.chooseLeave();
+    currentChoiceShape = null;
+  }
+});
+
+function setMoveState(direction, isPressed) {
+  if (direction in mobileMoveState) {
+    mobileMoveState[direction] = isPressed;
+  }
+}
+
+function bindHoldButton(button, direction) {
+  if (!button) return;
+
+  const start = (event) => {
+    event.preventDefault();
+    setMoveState(direction, true);
+  };
+
+  const end = (event) => {
+    event.preventDefault();
+    setMoveState(direction, false);
+  };
+
+  button.addEventListener('touchstart', start, { passive: false });
+  button.addEventListener('touchend', end, { passive: false });
+  button.addEventListener('touchcancel', end, { passive: false });
+
+  button.addEventListener('mousedown', start);
+  button.addEventListener('mouseup', end);
+  button.addEventListener('mouseleave', end);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  bindHoldButton(document.querySelector('[data-move="forward"]'), 'forward');
+  bindHoldButton(document.querySelector('[data-move="backward"]'), 'backward');
+  bindHoldButton(document.querySelector('[data-move="left"]'), 'left');
+  bindHoldButton(document.querySelector('[data-move="right"]'), 'right');
+
+  const stayBtn = document.getElementById('choiceStay');
+  const leaveBtn = document.getElementById('choiceLeave');
+
+  if (stayBtn) {
+    stayBtn.addEventListener('click', () => {
+      if (!currentChoiceShape) return;
+      const comp = currentChoiceShape.components['interactive-shape'];
+      if (comp) comp.chooseStay();
+    });
+  }
+
+  if (leaveBtn) {
+    leaveBtn.addEventListener('click', () => {
+      if (!currentChoiceShape) return;
+      const comp = currentChoiceShape.components['interactive-shape'];
+      if (comp) {
+        comp.chooseLeave();
+        currentChoiceShape = null;
+      }
+    });
+  }
+});
+
+AFRAME.registerComponent('mobile-move-controls', {
+  schema: {
+    speed: { type: 'number', default: 2.4 }
+  },
+
+  tick: function (_, delta) {
+    const dt = delta / 1000;
+    if (!dt) return;
+
+    const moveX =
+      (mobileMoveState.right ? 1 : 0) - (mobileMoveState.left ? 1 : 0);
+    const moveZ =
+      (mobileMoveState.backward ? 1 : 0) - (mobileMoveState.forward ? 1 : 0);
+
+    if (moveX === 0 && moveZ === 0) return;
+
+    const camera = document.getElementById('camera');
+    if (!camera) return;
+
+    const yaw = camera.object3D.rotation.y;
+    const speed = this.data.speed * dt;
+
+    const forwardX = -Math.sin(yaw);
+    const forwardZ = -Math.cos(yaw);
+    const rightX = Math.cos(yaw);
+    const rightZ = -Math.sin(yaw);
+
+    this.el.object3D.position.x += (rightX * moveX + forwardX * moveZ) * speed;
+    this.el.object3D.position.z += (rightZ * moveX + forwardZ * moveZ) * speed;
+  }
+});
+
 AFRAME.registerComponent('float-motion', {
   schema: {
     speed: { type: 'number', default: 1 },
@@ -40,180 +172,247 @@ AFRAME.registerComponent('interactive-shape', {
     hope: { type: 'boolean', default: false },
     radius: { type: 'number', default: 1.85 }
   },
+
   init: function () {
     this.state = 0;
     this.isInside = false;
     this.hasBeenExplored = false;
-    this.infoEl = null;
+    this.awaitingChoice = false;
+    this.isActiveRabbitHole = false;
+    this.revealTimer = null;
+    this.deepTimer = null;
   },
+
   triggerProximity: function () {
     if (this.isInside) return;
     this.isInside = true;
 
     const title = this.el.getAttribute('data-title');
-    const line1 = this.el.getAttribute('data-line1');
-    const line2 = this.el.getAttribute('data-line2');
+    const prompt = this.el.getAttribute('data-prompt');
 
-    showHint(title + ': ' + line1, 5000);
-    this.spawnText(title, line2);
+    this.awaitingChoice = true;
+    this.isActiveRabbitHole = false;
+
+    const choiceText = isMobileLike()
+  ? 'Use the Stay or Leave buttons'
+  : '[1] Yes, stay with it   [2] Explore other elements';
+
+showAspectDescription(title, prompt, choiceText);
 
     if (this.data.hope) {
       this.el.setAttribute(
         'animation__proximityGlow',
-        'property: scale; to: 1.28 1.28 1.28; dir: alternate; dur: 900; loop: true; easing: easeInOutSine'
+        'property: scale; to: 1.16 1.16 1.16; dir: alternate; dur: 1200; loop: true; easing: easeInOutSine'
       );
-      document.querySelector('a-scene').setAttribute('background', 'color: #0c1010');
     } else {
       this.el.setAttribute(
         'animation__proximityPulse',
-        'property: scale; to: 1.22 1.22 1.22; dir: alternate; dur: 500; loop: true; easing: easeInOutSine'
+        'property: scale; to: 1.14 1.14 1.14; dir: alternate; dur: 700; loop: true; easing: easeInOutSine'
       );
       this.el.setAttribute(
         'animation__proximityTilt',
-        'property: rotation; to: 12 25 8; dir: alternate; dur: 1400; loop: true; easing: easeInOutSine'
+        'property: rotation; to: 8 18 6; dir: alternate; dur: 1800; loop: true; easing: easeInOutSine'
       );
     }
+  },
 
-    this.state = 1;
+  chooseStay: function () {
+    if (!this.awaitingChoice || !this.isInside) return;
+
+    this.awaitingChoice = false;
+    this.isActiveRabbitHole = true;
+
+    const title = this.el.getAttribute('data-title');
+    const line1 = this.el.getAttribute('data-line1');
+    const line2 = this.el.getAttribute('data-line2');
+    const second = this.el.getAttribute('data-second');
+
+    showAspectDescription(title, line1, '');
+
+    this.revealTimer = setTimeout(() => {
+      if (!this.isInside || !this.isActiveRabbitHole) return;
+      showAspectDescription(title, line1, line2);
+    }, 1600);
+
+    this.deepTimer = setTimeout(() => {
+      if (!this.isInside || !this.isActiveRabbitHole) return;
+      showAspectDescription(title, line2, second);
+      showHint(`${title} is pulling you deeper.`, 2800);
+    }, 3800);
 
     if (!this.hasBeenExplored) {
       this.hasBeenExplored = true;
       this.el.emit('shape-explored');
     }
   },
+
+  chooseLeave: function () {
+  if (!this.awaitingChoice || !this.isInside) return;
+
+  this.awaitingChoice = false;
+  this.isActiveRabbitHole = false;
+
+  showHint('You chose to move on.', 1800);
+  hideAspectDescription();
+
+  this.el.removeAttribute('animation__proximityPulse');
+  this.el.removeAttribute('animation__proximityTilt');
+  this.el.removeAttribute('animation__proximityGlow');
+  this.el.setAttribute('scale', '1 1 1');
+
+  clearTimeout(this.revealTimer);
+  clearTimeout(this.deepTimer);
+
+  // Keep the player marked as inside so the prompt does not instantly reopen
+  // until they actually step out of the radius.
+  this.isInside = true;
+},
+
   resetProximity: function () {
-    if (!this.isInside) return;
-    this.isInside = false;
-    this.el.removeAttribute('animation__proximityPulse');
-    this.el.removeAttribute('animation__proximityTilt');
-    this.el.removeAttribute('animation__proximityGlow');
-    this.el.setAttribute('scale', '1 1 1');
+  if (!this.isInside && !this.awaitingChoice && !this.isActiveRabbitHole) return;
 
-    if (this.infoEl && this.infoEl.parentNode) {
-      this.infoEl.parentNode.removeChild(this.infoEl);
-      this.infoEl = null;
-    }
-  },
-  spawnText: function (title, body) {
-    const existing = this.el.querySelector('.infoText');
-    if (existing) {
-      existing.parentNode.removeChild(existing);
-    }
+  this.isInside = false;
+  this.awaitingChoice = false;
+  this.isActiveRabbitHole = false;
 
-    const text = document.createElement('a-entity');
-    text.classList.add('infoText');
-    text.setAttribute('text', {
-      value: `${title}\n${body}`,
-      align: 'center',
-      color: '#FFFFFF',
-      width: 1.35,
-      wrapCount: 12
-    });
-    text.setAttribute('position', '0 0.82 0');
-    text.setAttribute('look-at', '#camera');
-    this.el.appendChild(text);
-    this.infoEl = text;
-  },
-  deepenInteraction: function () {
-    if (this.data.hope) {
-      this.el.setAttribute(
-        'animation__glowhope',
-        'property: scale; to: 1.6 1.6 1.6; dur: 700; direction: alternate; loop: 1'
-      );
-      showHint('Hope becomes visible only after you decide it is worth approaching.', 4500);
-    } else {
-      this.el.setAttribute(
-        'animation__spinburst',
-        'property: rotation; to: 260 320 180; dur: 900; easing: easeInOutQuad'
-      );
-    }
-  }
+  clearTimeout(this.revealTimer);
+  clearTimeout(this.deepTimer);
+
+  this.el.removeAttribute('animation__proximityPulse');
+  this.el.removeAttribute('animation__proximityTilt');
+  this.el.removeAttribute('animation__proximityGlow');
+  this.el.setAttribute('scale', '1 1 1');
+
+  hideAspectDescription();
+}
 });
 
 AFRAME.registerComponent('proximity-manager', {
   init: function () {
     this.camera = this.el;
-    this.prompt = document.getElementById('interactionText');
     this.shapes = Array.from(document.querySelectorAll('.clickable'));
   },
+
   tick: function () {
     const cameraPos = new THREE.Vector3();
     this.camera.object3D.getWorldPosition(cameraPos);
 
-    let nearest = null;
-    let nearestDistance = Infinity;
+    let nearestChoiceShape = null;
+    let nearestChoiceDistance = Infinity;
 
     this.shapes.forEach((shape) => {
-      const shapePos = new THREE.Vector3();
-      shape.object3D.getWorldPosition(shapePos);
-      const distance = cameraPos.distanceTo(shapePos);
+      if (!shape.getAttribute('visible')) return;
+
       const comp = shape.components['interactive-shape'];
       if (!comp) return;
 
+      const shapePos = new THREE.Vector3();
+      shape.object3D.getWorldPosition(shapePos);
+      const distance = cameraPos.distanceTo(shapePos);
+
       if (distance < comp.data.radius) {
         comp.triggerProximity();
+
+        if (comp.awaitingChoice && distance < nearestChoiceDistance) {
+          nearestChoiceShape = shape;
+          nearestChoiceDistance = distance;
+        }
       } else {
         comp.resetProximity();
-      }
 
-      if (distance < nearestDistance) {
-        nearest = shape;
-        nearestDistance = distance;
+        if (currentChoiceShape === shape) {
+          currentChoiceShape = null;
+        }
       }
     });
 
-    if (nearest && this.prompt) {
-      const title = nearest.getAttribute('data-title');
-      const prompt = nearest.getAttribute('data-prompt');
-      this.prompt.setAttribute('text', 'value', `${title}\n${prompt}`);
-    }
+    currentChoiceShape = nearestChoiceShape;
   }
 });
 
 AFRAME.registerComponent('progress-manager', {
   init: function () {
-    this.totalShapes = 0;
-    this.explored = new Set();
-    this.completionText = null;
+    this.negativeTotal = 0;
+    this.negativeExplored = new Set();
+    this.hopeExplored = false;
+    this.hopeShape = null;
     this.portalWall = null;
+    this.progressCounter = null;
   },
+
   play: function () {
-    this.totalShapes = document.querySelectorAll('.clickable').length;
-    this.completionText = document.getElementById('completionText');
+    this.hopeShape = document.getElementById('hopeShape');
     this.portalWall = document.getElementById('portalWall');
+    this.progressCounter = document.getElementById('progressCounter');
+
     const shapes = document.querySelectorAll('.clickable');
+    const negativeShapes = [...shapes].filter(
+      (shape) => shape.getAttribute('data-group') === 'negative'
+    );
+
+    this.negativeTotal = negativeShapes.length;
+
+    if (this.progressCounter) {
+      this.progressCounter.textContent = `Negative aspects explored: 0/${this.negativeTotal}`;
+    }
 
     shapes.forEach((shape, index) => {
       shape.dataset.shapeId = String(index);
+
       shape.addEventListener('shape-explored', () => {
-        this.explored.add(shape.dataset.shapeId);
-        this.updateProgress();
+        const group = shape.getAttribute('data-group');
+        const title = shape.getAttribute('data-title');
+
+        if (group === 'negative') {
+          this.negativeExplored.add(shape.dataset.shapeId);
+          this.updateNegativeProgress();
+        }
+
+        if (group === 'hope') {
+          this.hopeExplored = true;
+          this.updateHopeProgress(title);
+        }
       });
     });
   },
-  updateProgress: function () {
-    if (!this.completionText) return;
 
-    if (this.explored.size < this.totalShapes) {
-      this.completionText.setAttribute('text', 'value', `Explored: ${this.explored.size}/${this.totalShapes}`);
-      this.completionText.setAttribute('visible', true);
-      return;
+  updateNegativeProgress: function () {
+    if (this.progressCounter) {
+      this.progressCounter.textContent =
+        `Negative aspects explored: ${this.negativeExplored.size}/${this.negativeTotal}`;
     }
 
-    this.completionText.setAttribute('text', 'value', 'You have explored all there is. Proceed to the next phase.');
-    this.completionText.setAttribute('visible', true);
+    if (this.negativeExplored.size === this.negativeTotal && this.hopeShape) {
+      this.hopeShape.setAttribute('visible', true);
+
+      if (this.progressCounter) {
+        this.progressCounter.textContent = 'All negative aspects explored. Hope has appeared.';
+      }
+
+      showHint(
+        'You have faced every negative force. Hope now reveals itself.',
+        5000
+      );
+    }
+  },
+
+  updateHopeProgress: function (title) {
+    if (!this.hopeExplored) return;
+
+    if (this.progressCounter) {
+      this.progressCounter.textContent = `${title} explored. A path forward is now open.`;
+    }
 
     if (this.portalWall) {
       this.portalWall.setAttribute('visible', true);
     }
 
     showHint(
-      'A path forward has appeared. Approach the wall and scan the QR code to continue. Use a phone camera for best results.',
+      'Hope has been explored. Approach the wall and scan the QR code to continue.',
       7000
     );
   }
 });
-
 AFRAME.registerComponent('look-at', {
   schema: { type: 'selector' },
   tick: function () {

@@ -54,3 +54,137 @@ body {
 .hint.show {
   opacity: 1;
 }
+
+.progress-counter {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  z-index: 11;
+  font-size: 12px;
+  line-height: 1.3;
+  backdrop-filter: blur(6px);
+}
+
+.aspect-description {
+  position: fixed;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90vw, 620px);
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  z-index: 11;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.aspect-description.show {
+  opacity: 1;
+} 
+
+.mobile-controls {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: none;
+}
+
+.dpad {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 148px;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.dpad-middle {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.dpad-btn,
+.choice-btn {
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  font-size: 18px;
+  line-height: 1;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  touch-action: manipulation;
+}
+
+.dpad-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.dpad .up {
+  display: block;
+  margin: 0 auto;
+}
+
+.mobile-choice-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.choice-btn {
+  min-width: 88px;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.mobile-controls.show {
+  display: block;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  .mobile-controls {
+    display: block;
+  }
+
+  .overlay {
+    width: min(88vw, 520px);
+    top: 12px;
+  }
+
+  .progress-counter {
+    top: 12px;
+    left: 12px;
+  }
+
+  .aspect-description {
+    bottom: 132px;
+    width: min(92vw, 560px);
+  }
+
+  .hint {
+    bottom: 84px;
+    width: min(92vw, 520px);
+  }
+}
