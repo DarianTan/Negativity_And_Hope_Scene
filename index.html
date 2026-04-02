@@ -19,7 +19,6 @@
     <div id="aspectDescription" class="aspect-description"></div>
     <div id="hintBox" class="hint"></div>
 
-
     <div id="mobileControls" class="mobile-controls">
   <div class="dpad">
     <button class="dpad-btn up" data-move="forward">▲</button>
@@ -76,14 +75,14 @@
       </a-entity>
 
       <a-entity id="rig" position="0 1.6 5" mobile-move-controls>
-        <a-entity
-  id="camera"
-  camera
-  look-controls="touchEnabled: true; magicWindowTrackingEnabled: false"
-  wasd-controls="acceleration: 28"
-  position="0 0 0"
-  proximity-manager
->
+      <a-entity
+        id="camera"
+        camera
+        look-controls="touchEnabled: true; magicWindowTrackingEnabled: false; reverseTouchDrag: false"
+        wasd-controls="acceleration: 28"
+        position="0 0 0"
+        proximity-manager
+      >
           <a-entity
             position="0 0 -1"
             geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"
