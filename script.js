@@ -111,7 +111,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 AFRAME.registerComponent('mobile-move-controls', {
   schema: {
-    speed: { type: 'number', default: 2.4 }
+    speed: { type: 'number', default: 1.9 }
   },
 
   tick: function (_, delta) {
@@ -120,10 +120,11 @@ AFRAME.registerComponent('mobile-move-controls', {
 
     const moveX =
       (mobileMoveState.right ? 1 : 0) - (mobileMoveState.left ? 1 : 0);
-    const moveZ =
-      (mobileMoveState.backward ? 1 : 0) - (mobileMoveState.forward ? 1 : 0);
 
-    if (moveX === 0 && moveZ === 0) return;
+    const moveForward =
+      (mobileMoveState.forward ? 1 : 0) - (mobileMoveState.backward ? 1 : 0);
+
+    if (moveX === 0 && moveForward === 0) return;
 
     const camera = document.getElementById('camera');
     if (!camera) return;
@@ -136,8 +137,11 @@ AFRAME.registerComponent('mobile-move-controls', {
     const rightX = Math.cos(yaw);
     const rightZ = -Math.sin(yaw);
 
-    this.el.object3D.position.x += (rightX * moveX + forwardX * moveZ) * speed;
-    this.el.object3D.position.z += (rightZ * moveX + forwardZ * moveZ) * speed;
+    this.el.object3D.position.x +=
+      (rightX * moveX + forwardX * moveForward) * speed;
+
+    this.el.object3D.position.z +=
+      (rightZ * moveX + forwardZ * moveForward) * speed;
   }
 });
 
