@@ -536,3 +536,69 @@ AFRAME.registerComponent('particle-field', {
     }
   }
 });
+
+window.addEventListener('DOMContentLoaded', () => {
+  function centerModelToPlaceholder(modelId, placeholderId) {
+    const modelEl = document.getElementById(modelId);
+    const placeholderEl = document.getElementById(placeholderId);
+
+    if (!modelEl || !placeholderEl) return;
+
+    modelEl.addEventListener('model-loaded', () => {
+      const object3D = modelEl.object3D;
+      const parent = object3D.parent;
+      const mesh = modelEl.getObject3D('mesh');
+
+      if (!mesh || !parent) return;
+
+      console.log(`${modelId} loaded successfully`);
+
+      const placeholderRadius =
+        parseFloat(placeholderEl.getAttribute('radius')) || 0.7;
+      const targetDiameter = placeholderRadius * 2;
+
+      object3D.position.set(0, 0, 0);
+      object3D.rotation.set(0, 0, 0);
+      object3D.scale.set(1, 1, 1);
+      object3D.updateMatrixWorld(true);
+
+      const initialBox = new THREE.Box3().setFromObject(mesh);
+      const initialSize = new THREE.Vector3();
+      initialBox.getSize(initialSize);
+
+      const largestDimension =
+        Math.max(initialSize.x, initialSize.y, initialSize.z) || 1;
+
+      const uniformScale = targetDiameter / largestDimension;
+      object3D.scale.set(uniformScale, uniformScale, uniformScale);
+      object3D.updateMatrixWorld(true);
+
+      const scaledBox = new THREE.Box3().setFromObject(mesh);
+      const worldCenter = new THREE.Vector3();
+      scaledBox.getCenter(worldCenter);
+
+      const localCenter = parent.worldToLocal(worldCenter.clone());
+
+      object3D.position.set(
+        -localCenter.x,
+        -localCenter.y,
+        -localCenter.z
+      );
+
+      object3D.rotation.set(0, 0, 0);
+      object3D.updateMatrixWorld(true);
+    });
+
+  modelEl.addEventListener('model-error', (event) => {
+  console.error(`${modelId} failed to load`);
+  console.error('detail:', event.detail);
+  console.error('src:', modelEl.getAttribute('gltf-model'));
+});
+  }
+
+centerModelToPlaceholder('fearModel', 'fearPlaceholder');
+centerModelToPlaceholder('jealousyModel', 'jealousyPlaceholder');
+centerModelToPlaceholder('chaosModel', 'chaosPlaceholder');
+centerModelToPlaceholder('diseaseModel', 'diseasePlaceholder');
+centerModelToPlaceholder('hopeModel', 'hopePlaceholder');
+});

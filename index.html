@@ -43,6 +43,11 @@
           preload="auto"
         ></audio>
         <img id="instagram-logo" src="images/Instagram_Logo.jpg" />
+        <a-asset-item id="fear-model" src="ghost/ghost.gltf"></a-asset-item>
+        <a-asset-item id="jealousy-model" src="heart/scene.gltf"></a-asset-item>
+        <a-asset-item id="chaos-model" src="tornado/tornado.gltf"></a-asset-item>
+        <a-asset-item id="disease-model" src="poly_skull/poly_skull.gltf"></a-asset-item>
+        <a-asset-item id="hope-model" src="butterfly/butterfly.gltf"></a-asset-item>
       </a-assets>
 
       <a-entity light="type: ambient; intensity: 0.3; color: #8a8a8a"></a-entity>
@@ -108,7 +113,7 @@
 
       <a-entity sound="src: #hum; autoplay: true; loop: true; volume: 0.18"></a-entity>
 
-      <a-entity
+<a-entity
   class="clickable"
   data-title="Fear"
   data-group="negative"
@@ -120,7 +125,20 @@
   position="-5 2 -2"
   float-motion="speed: 0.75; range: 0.08"
 >
-  <a-octahedron radius="0.55" color="#a10000" material="emissive: #520000; emissiveIntensity: 0.8; roughness: 0.3"></a-octahedron>
+  <a-sphere
+    id="fearPlaceholder"
+    radius="0.7"
+    color="#140607"
+    material="emissive: #5c0f16; emissiveIntensity: 0.28; opacity: 0.18; transparent: true"
+  ></a-sphere>
+
+  <a-entity
+    id="fearModel"
+    gltf-model="#fear-model"
+    position="0 0 0"
+    rotation="0 0 0"
+    scale="1 1 1"
+  ></a-entity>
 </a-entity>
 
 <a-entity
@@ -135,7 +153,21 @@
   position="5 1.8 -3.5"
   float-motion="speed: 0.65; range: 0.09"
 >
-  <a-tetrahedron radius="0.65" color="#d97706" material="emissive: #7c2d12; emissiveIntensity: 0.75"></a-tetrahedron>
+  <a-sphere
+    id="jealousyPlaceholder"
+    radius="0.7"
+    color="#181008"
+    material="emissive: #7a3d12; emissiveIntensity: 0.28; opacity: 0.35; transparent: true"
+  ></a-sphere>
+
+  <a-entity
+    id="jealousyModel"
+    gltf-model="#jealousy-model"
+    position="0 0 0"
+    rotation="0 0 0"
+    scale="1 1 1"
+    visible="true"
+  ></a-entity>
 </a-entity>
 
 <a-entity
@@ -150,7 +182,21 @@
   position="4.5 2.8 3.5"
   float-motion="speed: 0.8; range: 0.1"
 >
-  <a-icosahedron radius="0.5" color="#6d28d9" material="emissive: #312e81; emissiveIntensity: 0.9"></a-icosahedron>
+  <a-sphere
+    id="chaosPlaceholder"
+    radius="0.7"
+    color="#0f0918"
+    material="emissive: #4c1d95; emissiveIntensity: 0.35; opacity: 0.35; transparent: true"
+  ></a-sphere>
+
+  <a-entity
+    id="chaosModel"
+    gltf-model="#chaos-model"
+    position="0 0 0"
+    rotation="0 0 0"
+    scale="1 1 1"
+    visible="true"
+  ></a-entity>
 </a-entity>
 
 <a-entity
@@ -165,7 +211,20 @@
   position="-4 1.5 -6"
   float-motion="speed: 0.55; range: 0.06"
 >
-  <a-sphere radius="0.45" segments-width="10" segments-height="8" color="#2563eb" material="wireframe: true; emissive: #1e3a8a; emissiveIntensity: 0.85"></a-sphere>
+  <a-sphere
+    id="diseasePlaceholder"
+    radius="0.7"
+    color="#0b0f18"
+    material="emissive: #1e3a8a; emissiveIntensity: 0.28; opacity: 0.18; transparent: true"
+  ></a-sphere>
+
+  <a-entity
+    id="diseaseModel"
+    gltf-model="#disease-model"
+    position="0 0 0"
+    rotation="0 0 0"
+    scale="1 1 1"
+  ></a-entity>
 </a-entity>
 
 <a-entity
@@ -182,11 +241,21 @@
   float-motion="speed: 0.4; range: 0.05"
   visible="false"
 >
-  <a-dodecahedron
-    radius="0.42"
-    color="#d9f99d"
-    material="emissive: #84cc16; emissiveIntensity: 1"
-  ></a-dodecahedron>
+  <a-sphere
+    id="hopePlaceholder"
+    radius="0.7"
+    color="#0f140b"
+    material="emissive: #84cc16; emissiveIntensity: 0.35; opacity: 0.28; transparent: true"
+  ></a-sphere>
+
+  <a-entity
+    id="hopeModel"
+    gltf-model="#hope-model"
+    position="0 0 0"
+    rotation="0 0 0"
+    scale="1 1 1"
+    visible="true"
+  ></a-entity>
 </a-entity>
 
       <a-entity particle-field="count: 40"></a-entity>
