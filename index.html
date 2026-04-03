@@ -42,7 +42,7 @@
           src="https://cdn.aframe.io/basic-guide/audio/backgroundnoise.wav"
           preload="auto"
         ></audio>
-        <img id="qr-code" src="images/frame.png" />
+        <img id="instagram-logo" src="images/Instagram_Logo.jpg" />
       </a-assets>
 
       <a-entity light="type: ambient; intensity: 0.3; color: #8a8a8a"></a-entity>
@@ -60,29 +60,44 @@
         shadow="receive: true"
       ></a-plane>
 
-      <a-entity id="portalWall" position="0 2 -8" visible="false">
-        <a-plane width="6" height="4" color="#111111" material="opacity: 0.92"></a-plane>
-        <a-entity
-          text="value: You have explored all that escaped.\nYou may proceed to the next phase.; align: center; color: #FFFFFF; width: 3.1; wrapCount: 20"
-          position="0 1.05 0.02"
-        ></a-entity>
-        <a-plane position="0 -0.15 0.02" width="1.7" height="1.7" color="#f5f5f5"></a-plane>
-        <a-image src="#qr-code" position="0 -0.15 0.03" width="1.42" height="1.42"></a-image>
-        <a-entity
-          text="value: Scan to enter the next scene.; align: center; color: #CFCFCF; width: 2.2; wrapCount: 16"
-          position="0 -1.35 0.02"
-        ></a-entity>
-      </a-entity>
+<a-entity
+  id="portalWall"
+  class="portal-interactive"
+  portal-link
+  data-url="https://www.instagram.com/tba.theboxassociates/"
+  position="0 2 -8"
+  visible="false"
+>
+  <a-plane width="6" height="4" color="#111111" material="opacity: 0.92"></a-plane>
+
+  <a-entity
+    text="value: You have explored all that escaped.\nA new path is waiting.; align: center; color: #FFFFFF; width: 3.1; wrapCount: 20"
+    position="0 1.05 0.02"
+  ></a-entity>
+
+  <a-plane position="0 -0.1 0.02" width="1.85" height="1.85" color="#f5f5f5"></a-plane>
+  <a-image
+    src="#instagram-logo"
+    position="0 -0.1 0.03"
+    width="1.55"
+    height="1.55"
+  ></a-image>
+
+  <a-entity
+    text="value: Approach the wall to continue.; align: center; color: #CFCFCF; width: 2.4; wrapCount: 18"
+    position="0 -1.35 0.02"
+  ></a-entity>
+</a-entity>
 
       <a-entity id="rig" position="0 1.6 5" mobile-move-controls>
       <a-entity
-        id="camera"
-        camera
-        look-controls="touchEnabled: true; magicWindowTrackingEnabled: false; reverseTouchDrag: false"
-        wasd-controls="acceleration: 28"
-        position="0 0 0"
-        proximity-manager
-      >
+  id="camera"
+  camera
+  look-controls="touchEnabled: true; magicWindowTrackingEnabled: false; reverseTouchDrag: false"
+  wasd-controls="acceleration: 28"
+  position="0 0 0"
+  proximity-manager
+>
           <a-entity
             position="0 0 -1"
             geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"

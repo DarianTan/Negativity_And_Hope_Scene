@@ -39,15 +39,22 @@ let currentChoiceShape = null;
 window.addEventListener('keydown', (event) => {
   if (!currentChoiceShape) return;
 
-  const comp = currentChoiceShape.components['interactive-shape'];
-  if (!comp) return;
+  let targetComponent = null;
+
+  if (currentChoiceShape.components['interactive-shape']) {
+    targetComponent = currentChoiceShape.components['interactive-shape'];
+  } else if (currentChoiceShape.components['portal-link']) {
+    targetComponent = currentChoiceShape.components['portal-link'];
+  }
+
+  if (!targetComponent) return;
 
   if (event.key === '1') {
-    comp.chooseStay();
+    targetComponent.chooseStay();
   }
 
   if (event.key === '2') {
-    comp.chooseLeave();
+    targetComponent.chooseLeave();
     currentChoiceShape = null;
   }
 });
@@ -89,24 +96,40 @@ window.addEventListener('DOMContentLoaded', () => {
   const stayBtn = document.getElementById('choiceStay');
   const leaveBtn = document.getElementById('choiceLeave');
 
-  if (stayBtn) {
-    stayBtn.addEventListener('click', () => {
-      if (!currentChoiceShape) return;
-      const comp = currentChoiceShape.components['interactive-shape'];
-      if (comp) comp.chooseStay();
-    });
-  }
+if (stayBtn) {
+  stayBtn.addEventListener('click', () => {
+    if (!currentChoiceShape) return;
 
-  if (leaveBtn) {
-    leaveBtn.addEventListener('click', () => {
-      if (!currentChoiceShape) return;
-      const comp = currentChoiceShape.components['interactive-shape'];
-      if (comp) {
-        comp.chooseLeave();
-        currentChoiceShape = null;
-      }
-    });
-  }
+    let targetComponent = null;
+
+    if (currentChoiceShape.components['interactive-shape']) {
+      targetComponent = currentChoiceShape.components['interactive-shape'];
+    } else if (currentChoiceShape.components['portal-link']) {
+      targetComponent = currentChoiceShape.components['portal-link'];
+    }
+
+    if (targetComponent) targetComponent.chooseStay();
+  });
+}
+
+if (leaveBtn) {
+  leaveBtn.addEventListener('click', () => {
+    if (!currentChoiceShape) return;
+
+    let targetComponent = null;
+
+    if (currentChoiceShape.components['interactive-shape']) {
+      targetComponent = currentChoiceShape.components['interactive-shape'];
+    } else if (currentChoiceShape.components['portal-link']) {
+      targetComponent = currentChoiceShape.components['portal-link'];
+    }
+
+    if (targetComponent) {
+      targetComponent.chooseLeave();
+      currentChoiceShape = null;
+    }
+  });
+}
 });
 
 AFRAME.registerComponent('mobile-move-controls', {
@@ -291,10 +314,74 @@ showAspectDescription(title, prompt, choiceText);
 }
 });
 
+AFRAME.registerComponent('portal-link', {
+  schema: {
+    radius: { type: 'number', default: 2.2 }
+  },
+
+  init: function () {
+    this.isInside = false;
+    this.awaitingChoice = false;
+  },
+
+  triggerProximity: function () {
+    if (this.isInside) return;
+    this.isInside = true;
+    this.awaitingChoice = true;
+
+    const choiceText = isMobileLike()
+      ? 'Use the Stay or Leave buttons'
+      : '[1] Yes, go to the next scene   [2] Stay here';
+
+    showAspectDescription(
+      'Continue Forward',
+      'Would you like to be directed to the next scene through Instagram?',
+      choiceText
+    );
+
+    this.el.setAttribute(
+      'animation__portalPulse',
+      'property: scale; to: 1.03 1.03 1.03; dir: alternate; dur: 900; loop: true; easing: easeInOutSine'
+    );
+  },
+
+  chooseStay: function () {
+    if (!this.awaitingChoice || !this.isInside) return;
+
+    this.awaitingChoice = false;
+
+    const url = this.el.getAttribute('data-url');
+    showHint('Opening the next scene...', 1800);
+
+    window.open(url, '_blank');
+  },
+
+  chooseLeave: function () {
+    if (!this.awaitingChoice || !this.isInside) return;
+
+    this.awaitingChoice = false;
+    showHint('You chose to remain here.', 1800);
+    hideAspectDescription();
+  },
+
+  resetProximity: function () {
+    if (!this.isInside && !this.awaitingChoice) return;
+
+    this.isInside = false;
+    this.awaitingChoice = false;
+
+    this.el.removeAttribute('animation__portalPulse');
+    this.el.setAttribute('scale', '1 1 1');
+
+    hideAspectDescription();
+  }
+});
+
 AFRAME.registerComponent('proximity-manager', {
   init: function () {
     this.camera = this.el;
     this.shapes = Array.from(document.querySelectorAll('.clickable'));
+    this.portals = Array.from(document.querySelectorAll('.portal-interactive'));
   },
 
   tick: function () {
@@ -304,31 +391,34 @@ AFRAME.registerComponent('proximity-manager', {
     let nearestChoiceShape = null;
     let nearestChoiceDistance = Infinity;
 
-    this.shapes.forEach((shape) => {
-      if (!shape.getAttribute('visible')) return;
+    const handleTarget = (target, componentName) => {
+      if (!target.getAttribute('visible')) return;
 
-      const comp = shape.components['interactive-shape'];
+      const comp = target.components[componentName];
       if (!comp) return;
 
-      const shapePos = new THREE.Vector3();
-      shape.object3D.getWorldPosition(shapePos);
-      const distance = cameraPos.distanceTo(shapePos);
+      const targetPos = new THREE.Vector3();
+      target.object3D.getWorldPosition(targetPos);
+      const distance = cameraPos.distanceTo(targetPos);
 
       if (distance < comp.data.radius) {
         comp.triggerProximity();
 
         if (comp.awaitingChoice && distance < nearestChoiceDistance) {
-          nearestChoiceShape = shape;
+          nearestChoiceShape = target;
           nearestChoiceDistance = distance;
         }
       } else {
         comp.resetProximity();
 
-        if (currentChoiceShape === shape) {
+        if (currentChoiceShape === target) {
           currentChoiceShape = null;
         }
       }
-    });
+    };
+
+    this.shapes.forEach((shape) => handleTarget(shape, 'interactive-shape'));
+    this.portals.forEach((portal) => handleTarget(portal, 'portal-link'));
 
     currentChoiceShape = nearestChoiceShape;
   }
@@ -412,9 +502,9 @@ AFRAME.registerComponent('progress-manager', {
     }
 
     showHint(
-      'Hope has been explored. Approach the wall and scan the QR code to continue.',
-      7000
-    );
+  'Hope has been explored. Approach the wall with the Instagram logo to continue.',
+  7000
+);
   }
 });
 AFRAME.registerComponent('look-at', {
